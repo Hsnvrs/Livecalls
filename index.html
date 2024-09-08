@@ -3,20 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meeting Schedule</title>
+    <title>Hasaniverse Academy - Open Circle & Meditations</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             line-height: 1.6;
             color: #333;
-            max-width: 600px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
             background-color: #f4f4f4;
         }
-        h1 {
+        h1, h2 {
             text-align: center;
             color: #2c3e50;
+        }
+        .container {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        .column {
+            width: 48%;
+            min-width: 300px;
         }
         .meeting-card {
             background-color: #ffffff;
@@ -29,14 +38,14 @@
         .meeting-card:hover {
             transform: translateY(-5px);
         }
-        .meeting-card h2 {
+        .meeting-card h3 {
             margin-top: 0;
             color: #3498db;
         }
         .meeting-time {
             margin: 5px 0;
         }
-        .download-btn {
+        .download-btn, .download-all-btn {
             display: inline-block;
             background-color: #3498db;
             color: white;
@@ -46,17 +55,33 @@
             margin-top: 10px;
             transition: background-color 0.3s ease;
         }
-        .download-btn:hover {
+        .download-btn:hover, .download-all-btn:hover {
             background-color: #2980b9;
+        }
+        .download-all-btn {
+            display: block;
+            width: 200px;
+            margin: 20px auto;
+            text-align: center;
         }
     </style>
 </head>
 <body>
-    <h1>Meeting Schedule</h1>
-    <div id="schedule"></div>
+    <h1>Hasaniverse Academy - Open Circle & Meditations</h1>
+    <a href="#" class="download-all-btn" onclick="downloadAllICS(); return false;">Download All .ics</a>
+    <div class="container">
+        <div class="column">
+            <h2>Open Circle & Meditations</h2>
+            <div id="openCircleSchedule"></div>
+        </div>
+        <div class="column">
+            <h2>Live Expert Masterminds</h2>
+            <div id="expertMastermindsSchedule"></div>
+        </div>
+    </div>
 
     <script>
-        const schedules = [
+        const openCircleSchedules = [
             {
                 date: "Wednesday, October 2nd, 2024",
                 times: [
@@ -91,24 +116,53 @@
             }
         ];
 
-        function generateICS(date) {
+        const expertMasterminds = [
+            {
+                date: "Sunday, September 22nd, 2024",
+                title: "Dr. Octavio Pino - Psychoneuroenergetics and cognitive neuroscience for entrepreneurial success"
+            },
+            {
+                date: "Sunday, October 13th, 2024",
+                title: "Jewels Arnes - Secrets of the quantum realm concerning the mind-body system for manifestation"
+            },
+            {
+                date: "Sunday, November 3rd, 2024",
+                title: "Ryan Fix - The importance of human connection in a world that's increasingly digital"
+            },
+            {
+                date: "Sunday, November 24th, 2024",
+                title: "Sofia Mellano - Insights on human design and effective teamwork"
+            },
+            {
+                date: "Sunday, December 15th, 2024",
+                title: "Fryderyk Wiatrowski - A journey through artificial intelligence and automation tools"
+            },
+            {
+                date: "Sunday, January 5th, 2025",
+                title: "Advanced manifestation techniques and programming the mind-body vehicle towards our goals"
+            }
+        ];
+
+        function generateICS(date, title, isOpenCircle) {
             const [, month, day, year] = date.match(/(\w+) (\d+)(?:st|nd|rd|th), (\d{4})/);
             const monthNum = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].indexOf(month) + 1;
             const formattedDate = `${year}${monthNum.toString().padStart(2, '0')}${day.padStart(2, '0')}`;
+            const eventTitle = isOpenCircle ? "Open Circle & Meditation" : title;
+            const description = isOpenCircle ? "Meeting times: 09:00 AM New York / 3:00 PM Berlin / 09:00 PM Bali" : title;
 
             return `BEGIN:VCALENDAR
 VERSION:2.0
 BEGIN:VEVENT
 DTSTART:${formattedDate}T130000Z
 DTEND:${formattedDate}T140000Z
-SUMMARY:Scheduled Meeting
-DESCRIPTION:Meeting times: 09:00 AM New York / 3:00 PM Berlin / 09:00 PM Bali
+SUMMARY:${eventTitle}
+DESCRIPTION:${description}
 END:VEVENT
 END:VCALENDAR`;
         }
 
-        function downloadICS(date) {
-            const icsContent = generateICS(date);
+        function downloadICS(date, title, isOpenCircle) {
+            const icsContent = generateICS(date, title, isOpenCircle);
             const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
@@ -118,17 +172,50 @@ END:VCALENDAR`;
             document.body.removeChild(link);
         }
 
+        function downloadAllICS() {
+            const allEvents = [
+                ...openCircleSchedules.map(s => ({ date: s.date, title: "Open Circle & Meditation", isOpenCircle: true })),
+                ...expertMasterminds.map(e => ({ date: e.date, title: e.title, isOpenCircle: false }))
+            ];
+
+            let icsContent = "BEGIN:VCALENDAR\nVERSION:2.0\n";
+            allEvents.forEach(event => {
+                icsContent += generateICS(event.date, event.title, event.isOpenCircle).replace("BEGIN:VCALENDAR\nVERSION:2.0\n", "").replace("END:VCALENDAR", "");
+            });
+            icsContent += "END:VCALENDAR";
+
+            const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `all_meetings.ics`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
         function renderSchedule() {
-            const scheduleContainer = document.getElementById('schedule');
-            schedules.forEach(schedule => {
+            const openCircleContainer = document.getElementById('openCircleSchedule');
+            openCircleSchedules.forEach(schedule => {
                 const card = document.createElement('div');
                 card.className = 'meeting-card';
                 card.innerHTML = `
-                    <h2>${schedule.date}</h2>
+                    <h3>${schedule.date}</h3>
                     ${schedule.times.map(time => `<p class="meeting-time">📅 ${time}</p>`).join('')}
-                    <a href="#" class="download-btn" onclick="downloadICS('${schedule.date}'); return false;">Download .ics</a>
+                    <a href="#" class="download-btn" onclick="downloadICS('${schedule.date}', 'Open Circle & Meditation', true); return false;">Download .ics</a>
                 `;
-                scheduleContainer.appendChild(card);
+                openCircleContainer.appendChild(card);
+            });
+
+            const expertMastermindsContainer = document.getElementById('expertMastermindsSchedule');
+            expertMasterminds.forEach(event => {
+                const card = document.createElement('div');
+                card.className = 'meeting-card';
+                card.innerHTML = `
+                    <h3>${event.date}</h3>
+                    <p>${event.title}</p>
+                    <a href="#" class="download-btn" onclick="downloadICS('${event.date}', '${event.title}', false); return false;">Download .ics</a>
+                `;
+                expertMastermindsContainer.appendChild(card);
             });
         }
 
