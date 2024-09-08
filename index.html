@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meeting Schedule</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        .meeting-card {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            padding: 20px;
+            transition: transform 0.3s ease;
+        }
+        .meeting-card:hover {
+            transform: translateY(-5px);
+        }
+        .meeting-card h2 {
+            margin-top: 0;
+            color: #3498db;
+        }
+        .meeting-time {
+            margin: 5px 0;
+        }
+        .download-btn {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 10px;
+            transition: background-color 0.3s ease;
+        }
+        .download-btn:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <h1>Meeting Schedule</h1>
+    <div id="schedule"></div>
+
+    <script>
+        const schedules = [
+            {
+                date: "Wednesday, October 2nd, 2024",
+                times: [
+                    "09:00 AM New York",
+                    "3:00 PM Berlin",
+                    "09:00 PM Bali"
+                ]
+            },
+            {
+                date: "Wednesday, October 23rd, 2024",
+                times: [
+                    "09:00 AM New York",
+                    "3:00 PM Berlin",
+                    "09:00 PM Bali"
+                ]
+            },
+            {
+                date: "Wednesday, November 13th, 2024",
+                times: [
+                    "09:00 AM New York",
+                    "3:00 PM Berlin",
+                    "09:00 PM Bali"
+                ]
+            },
+            {
+                date: "Wednesday, December 4th, 2024",
+                times: [
+                    "09:00 AM New York",
+                    "3:00 PM Berlin",
+                    "09:00 PM Bali"
+                ]
+            }
+        ];
+
+        function generateICS(date) {
+            const [, month, day, year] = date.match(/(\w+) (\d+)(?:st|nd|rd|th), (\d{4})/);
+            const monthNum = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].indexOf(month) + 1;
+            const formattedDate = `${year}${monthNum.toString().padStart(2, '0')}${day.padStart(2, '0')}`;
+
+            return `BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+DTSTART:${formattedDate}T130000Z
+DTEND:${formattedDate}T140000Z
+SUMMARY:Scheduled Meeting
+DESCRIPTION:Meeting times: 09:00 AM New York / 3:00 PM Berlin / 09:00 PM Bali
+END:VEVENT
+END:VCALENDAR`;
+        }
+
+        function downloadICS(date) {
+            const icsContent = generateICS(date);
+            const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `meeting_${date.replace(/\s/g, '_')}.ics`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function renderSchedule() {
+            const scheduleContainer = document.getElementById('schedule');
+            schedules.forEach(schedule => {
+                const card = document.createElement('div');
+                card.className = 'meeting-card';
+                card.innerHTML = `
+                    <h2>${schedule.date}</h2>
+                    ${schedule.times.map(time => `<p class="meeting-time">📅 ${time}</p>`).join('')}
+                    <a href="#" class="download-btn" onclick="downloadICS('${schedule.date}'); return false;">Download .ics</a>
+                `;
+                scheduleContainer.appendChild(card);
+            });
+        }
+
+        renderSchedule();
+    </script>
+</body>
+</html>
