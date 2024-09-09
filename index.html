@@ -163,13 +163,8 @@ END:VCALENDAR`;
 
         function downloadICS(date, title, isOpenCircle) {
   const icsContent = generateICS(date, title, isOpenCircle);
-  const blob = new Blob([icsContent], { type: 'text/calendar' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `meeting_${date.replace(/\s/g, '_')}.ics`;
-  a.click();
-  URL.revokeObjectURL(url);
+  const url = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsContent)}`;
+  window.open(url, '_blank');
 }
 
 function generateICS(date, title, isOpenCircle) {
