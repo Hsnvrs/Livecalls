@@ -18,16 +18,16 @@
             text-align: center;
             color: #2c3e50;
         }
-        .container {
+       .container {
             display: flex;
             justify-content: space-between;
             flex-wrap: wrap;
         }
-        .column {
+       .column {
             width: 48%;
             min-width: 300px;
         }
-        .meeting-card {
+       .meeting-card {
             background-color: #ffffff;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -35,17 +35,17 @@
             padding: 20px;
             transition: transform 0.3s ease;
         }
-        .meeting-card:hover {
+       .meeting-card:hover {
             transform: translateY(-5px);
         }
-        .meeting-card h3 {
+       .meeting-card h3 {
             margin-top: 0;
             color: #3498db;
         }
-        .meeting-time {
+       .meeting-time {
             margin: 5px 0;
         }
-        .download-btn, .download-all-btn {
+       .download-btn,.download-all-btn {
             display: inline-block;
             background-color: #3498db;
             color: white;
@@ -55,10 +55,10 @@
             margin-top: 10px;
             transition: background-color 0.3s ease;
         }
-        .download-btn:hover, .download-all-btn:hover {
+       .download-btn:hover,.download-all-btn:hover {
             background-color: #2980b9;
         }
-        .download-all-btn {
+       .download-all-btn {
             display: block;
             width: 200px;
             margin: 20px auto;
@@ -68,7 +68,7 @@
 </head>
 <body>
     <h1>Hasaniverse Academy - Open Circle & Meditations</h1>
-    <a href="#" class="download-all-btn" onclick="downloadAllICS(); return false;">Download All .ics</a>
+    <a href="#" class="download-all-btn" onclick="downloadAllICS(); return false;">Download All.ics</a>
     <div class="container">
         <div class="column">
             <h2>Open Circle & Meditations</h2>
@@ -144,31 +144,7 @@
         ];
 
         function generateICS(date, title, isOpenCircle) {
-            const [, month, day, year] = date.match(/(\w+) (\d+)(?:st|nd|rd|th), (\d{4})/);
-            const monthNum = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].indexOf(month) + 1;
-            const formattedDate = `${year}${monthNum.toString().padStart(2, '0')}${day.padStart(2, '0')}`;
-            const eventTitle = isOpenCircle ? "Open Circle & Meditation" : title;
-            const description = isOpenCircle ? "Meeting times: 09:00 AM New York / 3:00 PM Berlin / 09:00 PM Bali" : title;
-
-            return `BEGIN:VCALENDAR
-VERSION:2.0
-BEGIN:VEVENT
-DTSTART:${formattedDate}T130000Z
-DTEND:${formattedDate}T140000Z
-SUMMARY:${eventTitle}
-DESCRIPTION:${description}
-END:VEVENT
-END:VCALENDAR`;
-        }
-
-        function downloadICS(date, title, isOpenCircle) {
-  const icsContent = generateICS(date, title, isOpenCircle);
-  const url = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsContent)}`;
-  window.open(url, '_blank');
-}
-
-function generateICS(date, title, isOpenCircle) {
-  const icsContent = `BEGIN:VCALENDAR
+            const icsContent = `BEGIN:VCALENDAR
 VERSION:2.0
 BEGIN:VEVENT
 DTSTART:${date}
@@ -176,7 +152,19 @@ DTEND:${date}
 SUMMARY:${title}
 END:VEVENT
 END:VCALENDAR`;
-  return icsContent;
+            return icsContent;
+        }
+
+        function downloadICS(date, title, isOpenCircle) {
+            const icsContent = generateICS(date, title, isOpenCircle);
+            const url = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsContent)}`;
+            window.open(url, '_blank');
+        }
+
+        function downloadAllICS() {
+            const allEvents = [
+               ...openCircleSchedules.map(s => ({ date: s.date, title: "Open Circle & Meditation", isOpenCircle: true })),
+               ...expertMasterminds.map(e => ({ date: e.date, title: e.title, isOpenCircle: false }))
             ];
 
             let icsContent = "BEGIN:VCALENDAR\nVERSION:2.0\n";
@@ -185,13 +173,15 @@ END:VCALENDAR`;
             });
             icsContent += "END:VCALENDAR";
 
-            const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `all_meetings.ics`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            const blob = new Blob([icsContent], { type: 'text/calendar' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `all_meetings.ics`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
 
         function renderSchedule() {
@@ -202,7 +192,7 @@ END:VCALENDAR`;
                 card.innerHTML = `
                     <h3>${schedule.date}</h3>
                     ${schedule.times.map(time => `<p class="meeting-time">📅 ${time}</p>`).join('')}
-                    <a href="#" class="download-btn" onclick="downloadICS('${schedule.date}', 'Open Circle & Meditation', true); return false;">Download .ics</a>
+                    <a href="#" class="download-btn" onclick="downloadICS('${schedule.date}', 'Open Circle & Meditation', true); return false;">Download.ics</a>
                 `;
                 openCircleContainer.appendChild(card);
             });
@@ -214,7 +204,7 @@ END:VCALENDAR`;
                 card.innerHTML = `
                     <h3>${event.date}</h3>
                     <p>${event.title}</p>
-                    <a href="#" class="download-btn" onclick="downloadICS('${event.date}', '${event.title}', false); return false;">Download .ics</a>
+                    <a href="#" class="download-btn" onclick="downloadICS('${event.date}', '${event.title}', false); return false;">Download.ics</a>
                 `;
                 expertMastermindsContainer.appendChild(card);
             });
