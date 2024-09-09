@@ -163,19 +163,25 @@ END:VCALENDAR`;
 
         function downloadICS(date, title, isOpenCircle) {
   const icsContent = generateICS(date, title, isOpenCircle);
-  const url = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(icsContent);
+  const blob = new Blob([icsContent], { type: 'text/calendar' });
+  const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
   a.download = `meeting_${date.replace(/\s/g, '_')}.ics`;
-  document.body.appendChild(a);
   a.click();
-  document.body.removeChild(a);
-        }
+  URL.revokeObjectURL(url);
+}
 
-        function downloadAllICS() {
-            const allEvents = [
-                ...openCircleSchedules.map(s => ({ date: s.date, title: "Open Circle & Meditation", isOpenCircle: true })),
-                ...expertMasterminds.map(e => ({ date: e.date, title: e.title, isOpenCircle: false }))
+function generateICS(date, title, isOpenCircle) {
+  const icsContent = `BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+DTSTART:${date}
+DTEND:${date}
+SUMMARY:${title}
+END:VEVENT
+END:VCALENDAR`;
+  return icsContent;
             ];
 
             let icsContent = "BEGIN:VCALENDAR\nVERSION:2.0\n";
