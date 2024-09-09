@@ -18,16 +18,16 @@
             text-align: center;
             color: #2c3e50;
         }
-    .container {
+       .container {
             display: flex;
             justify-content: space-between;
             flex-wrap: wrap;
         }
-    .column {
+       .column {
             width: 48%;
             min-width: 300px;
         }
-    .meeting-card {
+       .meeting-card {
             background-color: #ffffff;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -35,13 +35,17 @@
             padding: 20px;
             transition: transform 0.3s ease;
         }
-    .meeting-card:hover {
+       .meeting-card:hover {
             transform: translateY(-5px);
         }
-    .meeting-time {
+       .meeting-card h3 {
+            margin-top: 0;
+            color: #3498db;
+        }
+       .meeting-time {
             margin: 5px 0;
         }
-    .download-btn {
+       .download-btn,.download-all-btn {
             display: inline-block;
             background-color: #3498db;
             color: white;
@@ -51,13 +55,20 @@
             margin-top: 10px;
             transition: background-color 0.3s ease;
         }
-    .download-btn:hover {
+       .download-btn:hover,.download-all-btn:hover {
             background-color: #2980b9;
+        }
+       .download-all-btn {
+            display: block;
+            width: 200px;
+            margin: 20px auto;
+            text-align: center;
         }
     </style>
 </head>
 <body>
     <h1>Hasaniverse Academy - Open Circle & Meditations</h1>
+    <a href="#" class="download-all-btn" onclick="downloadAllICS(); return false;">Download All.ics</a>
     <div class="container">
         <div class="column">
             <h2>Open Circle & Meditations</h2>
@@ -132,6 +143,47 @@
             }
         ];
 
+        function generateICS(date, title, isOpenCircle) {
+            const icsContent = `BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+DTSTART:${date}
+DTEND:${date}
+SUMMARY:${title}
+END:VEVENT
+END:VCALENDAR`;
+            return icsContent;
+        }
+
+        function downloadICS(date, title, isOpenCircle) {
+            const icsContent = generateICS(date, title, isOpenCircle);
+            const url = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsContent)}`;
+            window.open(url, '_blank');
+        }
+
+        function downloadAllICS() {
+            const allEvents = [
+               ...openCircleSchedules.map(s => ({ date: s.date, title: "Open Circle & Meditation", isOpenCircle: true })),
+               ...expertMasterminds.map(e => ({ date: e.date, title: e.title, isOpenCircle: false }))
+            ];
+
+            let icsContent = "BEGIN:VCALENDAR\nVERSION:2.0\n";
+            allEvents.forEach(event => {
+                icsContent += generateICS(event.date, event.title, event.isOpenCircle).replace("BEGIN:VCALENDAR\nVERSION:2.0\n", "").replace("END:VCALENDAR", "");
+            });
+            icsContent += "END:VCALENDAR";
+
+            const blob = new Blob([icsContent], { type: 'text/calendar' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `all_meetings.ics`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
         function renderSchedule() {
             const openCircleContainer = document.getElementById('openCircleSchedule');
             openCircleSchedules.forEach(schedule => {
@@ -140,7 +192,7 @@
                 card.innerHTML = `
                     <h3>${schedule.date}</h3>
                     ${schedule.times.map(time => `<p class="meeting-time">📅 ${time}</p>`).join('')}
-                    <button class="download-btn" onclick="sendToCalendar('${schedule.date}', 'Open Circle & Meditation', true); return false;">Send to my calendar</button>
+                    <a href="#" class="download-btn" onclick="downloadICS('${schedule.date}', 'Open Circle & Meditation', true); return false;">Download.ics</a>
                 `;
                 openCircleContainer.appendChild(card);
             });
@@ -152,17 +204,10 @@
                 card.innerHTML = `
                     <h3>${event.date}</h3>
                     <p>${event.title}</p>
-                    <button class="download-btn" onclick="sendToCalendar('${event.date}', '${event.title}', false); return false;">Send to my calendar</button>
+                    <a href="#" class="download-btn" onclick="downloadICS('${event.date}', '${event.title}', false); return false;">Download.ics</a>
                 `;
                 expertMastermindsContainer.appendChild(card);
             });
-        }
-
-        function sendToCalendar(date, title, isOpenCircle) {
-            const subject = isOpenCircle? "Open Circle & Meditation Invitation" : `${title} Invitation`;
-            const body = `You are invited to a meeting on ${date} at ${isOpenCircle? "Open Circle & Meditation" : title}.`;
-            const mailtoLink = `mailto:?subject=${subject}&body=${body}`;
-            window.location.href = mailtoLink;
         }
 
         renderSchedule();
